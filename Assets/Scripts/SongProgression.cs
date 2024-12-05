@@ -73,7 +73,6 @@ public class SongProgression : MonoBehaviour
             }
             if (IsEndSong())
             {
-                Debug.Log("Song Finished!!");
                 GameManager.inSong = false;
                 //We should be at the end of the song at this point in time
                 GameManager.DelayAction(3f, () =>

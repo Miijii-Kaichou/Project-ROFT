@@ -42,6 +42,8 @@ public class SongList : MonoBehaviour
     GameObject songEntryObj;
     SongEntry songEntry;
 
+    float fadeVelocity;
+
     private void Awake()
     {
         Instance = this;
@@ -161,15 +163,21 @@ public class SongList : MonoBehaviour
 
     private IEnumerator FadeInImagesCycle()
     {
-        for (float i = 0; i < 255; i += 10f)
+        var animating = true;
+        var i = 0f;
+        while(animating)
         {
+            i = Mathf.SmoothDamp(i, 255f, ref fadeVelocity, 0.1f);
+
             //Index 0: Main Cover Display
             songCovers[0].color = new Color(songCovers[0].color.r, songCovers[0].color.g, songCovers[0].color.b, i / 255f);
-            
+
             //Index 1: Background Cover Display
             songCovers[1].color = new Color(songCovers[1].color.r, songCovers[1].color.g, songCovers[1].color.b, i / 255f);
 
-            yield return null;
+            yield return new WaitForFixedUpdate();
+
+            animating = i < 255;
         }
     }
 

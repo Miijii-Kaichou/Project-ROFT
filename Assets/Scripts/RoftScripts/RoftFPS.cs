@@ -36,6 +36,7 @@ public class RoftFPS : Singleton<RoftFPS>
     void Start()
     {
         fpsNextPeriod = Time.realtimeSinceStartup + fpsMeasurePeriod;
+        Application.targetFrameRate = (int)targetFrameRate;
     }
 
     // Update is called once per frame

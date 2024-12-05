@@ -1,5 +1,5 @@
 ﻿[System.Serializable]
-public class BurstObjectReader : ObjectTypes
+public class BurstObjectReader : ObjectReader
 {
     public BurstObjectReader()
     {

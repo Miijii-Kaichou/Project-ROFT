@@ -1,6 +1,6 @@
 ﻿[System.Serializable]
 
-public class TapObjectReader : ObjectTypes
+public class TapObjectReader : ObjectReader
 {
     public TapObjectReader()
     {

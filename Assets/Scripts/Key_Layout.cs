@@ -4,7 +4,6 @@ using TMPro;
 using Cakewalk.IoC;
 using UnityEngine.UI;
 using System;
-
 //This is going to be an abstract class. This will be the base class of all other layouts in the game
 public class Key_Layout : MonoBehaviour
 {
@@ -14,6 +13,9 @@ public class Key_Layout : MonoBehaviour
     [SerializeField]
     private GridLayoutGroup gridLayoutGroup;
 
+    [SerializeField]
+    private RectTransform _keyLayoutTransform;
+
     //So I want to be able to allow the player to freely keybind key layouts (even though there's hardly any reason besides 4x4, 8x8, and 12x12)
     //Other than that, I want to go through a process of getting all homerow, toprow, and bottomrow keys.
     //KeyLayout will be given an enumerator
@@ -21,40 +23,8 @@ public class Key_Layout : MonoBehaviour
     public bool recordKeyInput;
 
     #region Public Members
-    public enum KeyLayoutType
-    {
-        //Basic literacy
-        Layout_1x4,
-        Layout_2x4,
-        Layout_3x4,
-        Layout_4x4,
-
-        //Intermediate literacy
-        Layout_3x6,
-        Layout_4x6,
-
-        //Advanced literarcy
-        Layout_3x8,
-        Layout_4x8,
-
-        //Expert literacy
-        Layout_3x10,
-        Layout_4x10
-    }
-
-    //This enum will change depending on the game mode in 
-    //the game manager
-    //Automatically, the KeyLayoutType mode will be either
-    //Layout_HomeRow or Layout_3Row
-    public enum LayoutMethod
-    {
-        Abstract,
-        Region_Scatter
-    }
 
     public KeyLayoutType KeyLayout;
-
-    public LayoutMethod layoutMethod;
 
     public bool autoBindKeys = true;
 
@@ -63,7 +33,6 @@ public class Key_Layout : MonoBehaviour
 
     //After iterating through strings, we'll return a Input corresponding avaliable keys.
     public List<KeyCode> primaryBindedKeys = new List<KeyCode>();
-    public List<KeyCode> secondaryBindedKeys = new List<KeyCode>();
 
     public static List<GameObject> keyObjects = new List<GameObject>();
 
@@ -75,36 +44,20 @@ public class Key_Layout : MonoBehaviour
 
     #region Private Members
 
+    //TODO: Create new readonly string for Burst Direction Keys
+    //and for the Alternation Keys (the keys in the middle of each keyrow)
+
     //primaryLayout is the key layout where you control
     //both ends of the in-game layout
-    private readonly string[] primaryLayout = new string[10]
+    private readonly string[] primaryLayout = new string[7]
     {
-        "asdf", // 1 x 4
-        "qwerasdf", // 2 x 4
-        "qwerasdfzxcv", // 3 x 4
-        "1234qwerasdfzxcv", // 4 x 4
-        "qwertyasdfghzxcvbn", // 3 x 6
-        "123456qwertyasdfghzxcvbn", // 4 x 6
-        "qweruiopasdfjkl;zxcvm,./", // 3 x 8
-        "12347890qweruiopasdfjkl;zxcvm,./", // 4 x 8
-        "qwertyuiopasdfghjkl;zxcvbnm,./", // 3 x 10
-        "1234567890qwertyuiopasdfghjkl;zxcvbnm,./" //4 x 10
-    };
-
-    //secondaryLayout is other key bindings that also affect
-    //one end of the in-game layout
-    private readonly string[] secondaryLayout = new string[10]
-    {
-        "asl;", // 1 x 4
         "qwopasl;", // 2 x 4
         "qwopasl;zx./", // 3 x 4
-        "1290qwopasl;zx./",// 4 x 4
+        "1290qwopasl;zx./", // 4 x 4
         "qweiopasdkl;zxc,./", // 3 x 6
         "123890qweiopasdkl;zxc,./", // 4 x 6
-        "qweruiopasdfjkl;zxcvm,./", // 3 x 8
-        "12347890qweruiopasdfjkl;zxcvm,./", // 4 x 8
-        "qwertyuiopasdfghjkl;zxcvbnm,./", //3 x 10
-        "1234567890qwertyuiopasdfghjkl;zxcvbnm,./" //4 x 10
+        "qweruiopasdfjkl;zxcvm,./.", // 3 x 8
+        "12347890qweruiopasdfjkl;zxcvm,./" // 4 x 8
     };
 
     private KeyConfig keyConfig;
@@ -129,61 +82,33 @@ public class Key_Layout : MonoBehaviour
     void InitiateAutoKeyBind()
     {
         //I want to first bind the primary layout
-
         for (int keyID = 0; keyID < primaryLayout[(int)KeyLayout].Length; keyID++)
-            InvokeKeyBind(primaryLayout[(int)KeyLayout][keyID], _rank: "primary");
-
-        //Then I bind the secondary layout
-        for (int keyID = 0; keyID < secondaryLayout[(int)KeyLayout].Length; keyID++)
-        {
-            GameObject keyObj = keyObjects[keyID];
-            //keyObj.GetComponent<ShowLetter>().SetAssignedKeyBind(secondaryLayout[(int)KeyLayout][keyID]);
-            InvokeKeyBind(secondaryLayout[(int)KeyLayout][keyID], _rank: "secondary");
-        }
+            InvokeKeyBind(primaryLayout[(int)KeyLayout][keyID]);
     }
 
     //This will simply take any character, and keybind it.
-    public KeyCode InvokeKeyBind(char m_char, bool _addToList = true, string _rank = "primary")
+    public KeyCode InvokeKeyBind(char m_char, bool _addToList = true)
     {
 
         KeyCode key;
         key = (KeyCode)m_char;
 
-        if (_addToList)
-        {
-            switch (_rank.ToLower())
-            {
-                case "primary":
-                    primaryBindedKeys.Add(key);
-                    break;
-                case "secondary":
-                    secondaryBindedKeys.Add(key);
-                    break;
-            }
-        }
+        if (!_addToList) return key;
+        primaryBindedKeys.Add(key);
 
         return key;
     }
 
     //This takes any ASCII integer that exists on the keyboard
     //if the player so desires to manually keybind
-    public KeyCode InvokeKeyBind(int m_int, bool _addToList = true, string _rank = "primary")
+    public KeyCode InvokeKeyBind(int m_int, bool _addToList = true)
     {
         KeyCode key;
         key = (KeyCode)m_int;
 
-        if (_addToList)
-        {
-            switch (_rank.ToLower())
-            {
-                case "primary":
-                    primaryBindedKeys.Add(key);
-                    break;
-                case "secondary":
-                    secondaryBindedKeys.Add(key);
-                    break;
-            }
-        }
+        if (!_addToList) return key;
+        primaryBindedKeys.Add(key);
+
         return key;
 
     }
@@ -215,10 +140,6 @@ public class Key_Layout : MonoBehaviour
         //Determine how many columns and rows before setting up
         switch (KeyLayout)
         {
-            case KeyLayoutType.Layout_1x4:
-                numRows = 1; numCols = 4;
-                break;
-
             case KeyLayoutType.Layout_2x4:
                 numRows = 2; numCols = 4;
                 break;
@@ -247,19 +168,14 @@ public class Key_Layout : MonoBehaviour
                 numRows = 4; numCols = 8;
                 break;
 
-            case KeyLayoutType.Layout_3x10:
-                numRows = 3; numCols = 10;
-                break;
-            case KeyLayoutType.Layout_4x10:
-                numRows = 4; numCols = 10;
-                break;
-
             default:
                 break;
         }
 
-       
+        gridLayoutGroup.cellSize = new Vector2(keyConfig.keyHorizontalSpread[(int)KeyLayout], keyConfig.keyVerticalSpread[(int)KeyLayout]);
         gridLayoutGroup.constraintCount = (int)numCols;
+
+        _keyLayoutTransform.localScale = new Vector3(keyConfig.keyLayoutScale[(int)KeyLayout], keyConfig.keyLayoutScale[(int)KeyLayout], 1f);
 
         for (int row = 0; row < numRows; row++)
         {
@@ -301,18 +217,17 @@ public class Key_Layout : MonoBehaviour
 
         pooler.FlushPool();
 
-        KeyLayout = default; 
+        KeyLayout = default;
     }
 
     private void UnBindKeys()
     {
         //I want to first bind the primary layout
-        foreach(GameObject keyObject in keyObjects)
+        foreach (GameObject keyObject in keyObjects)
         {
             keyObject.GetComponent<KeyId>().pooler.FlushPool();
         }
         keyObjects.Clear();
         primaryBindedKeys.Clear();
-        secondaryBindedKeys.Clear();
     }
 }

@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using TMPro;
-
-using ROFTIOMANAGEMENT;
+using static Extensions.Convenience;
 using UnityEngine.UI;
+using Extensions;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Key_Layout))]
 public class KeyPress : MonoBehaviour
@@ -15,12 +16,20 @@ public class KeyPress : MonoBehaviour
 
     public Sprite keyActive, keyInActive;
 
+    public Color[] keyActiveColor = new Color[2];
+
     public TextMeshProUGUI debugText;
 
     //Input Value for KeyPress
     public int keyPressInput = 0;
     const int activeInput = 1;
     const int inactiveInput = 0;
+    readonly Color defaultColor = Color.white;
+    const float inactiveOpacity = 128f;
+    const float activeOpacity = 255f;
+
+    //Cache Info
+    Dictionary<int, KeyControls> keyCache = new();
 
 
     // Start is called before the first frame update
@@ -41,54 +50,75 @@ public class KeyPress : MonoBehaviour
     This is also how beatmaps can be recorded manually by the user.*/
     void RunInteractivity()
     {
+
         //Check if we can interact with keys
-        if (GameManager.Instance.IsInteractable())
+        if (GameManager.Instance.IsInteractable() != true) return;
+
+        for (int keyNum = 0; keyNum < key_Layout.primaryBindedKeys.Count; keyNum++)
         {
-            for (int keyNum = 0; keyNum < key_Layout.primaryBindedKeys.Count; keyNum++)
+            bool bindKeys = Input.GetKey(key_Layout.primaryBindedKeys[keyNum]);
+            bool bindKeysPressed = Input.GetKeyDown(key_Layout.primaryBindedKeys[keyNum]);
+
+            if (bindKeys)
             {
-                bool bindKeys = Input.GetKey(key_Layout.primaryBindedKeys[keyNum]) || Input.GetKey(key_Layout.secondaryBindedKeys[keyNum]);
-                bool bindKeysPressed = Input.GetKeyDown(key_Layout.primaryBindedKeys[keyNum]) || Input.GetKeyDown(key_Layout.secondaryBindedKeys[keyNum]);
+                /*If we happen to be recording, and we hit the second set of binded keys, the
+                data will be written to a file.*/
+                #region Write to RFTM File
+                if (RoftPlayer.Record && bindKeysPressed)
+                {
+                    string data =
+                        keyNum.ToString() + ","
+                         + RoftPlayer.musicSource.timeSamples.ToString() + ","
+                        + 0.ToString();
+                }
+                #endregion
+
+                ToggleKeyActivity(keyNum, true);
 
                 if (bindKeys)
-                {
-                    /*If we happen to be recording, and we hit the second set of binded keys, the
-                    data will be written to a file.*/
-                    #region Write to RFTM File
-                    if (RoftPlayer.Record && bindKeysPressed)
-                    {
-                        string data =
-                            keyNum.ToString() + ","
-                             + RoftPlayer.musicSource.timeSamples.ToString() + ","
-                            + 0.ToString();
-                    }
-                    #endregion
-
-                    ActivateKey(keyNum, true);
-
-                    if (bindKeys)
-                        keyPressInput = activeInput;
-                }
-                else
-                    ActivateKey(keyNum, false);
+                    keyPressInput = activeInput;
             }
-
+            else
+                ToggleKeyActivity(keyNum, false);
         }
     }
 
     //This will turn the keys on, signifying that the key is being pressed
-    public bool ActivateKey(int _keyNum, bool _on)
+    public bool ToggleKeyActivity(int _keyNum, bool _on)
     {
-        KeyControls key = Key_Layout.keyObjects[_keyNum].GetComponent<KeyControls>();
+        //To not have to create another class that holds KeyControl, just cache it if not
+        //in our dictionary, and reuse it.
 
-        if (_on)
-        {
-            key.GetGraphics().sprite = keyActive;
+        if (keyCache.ContainsKey(_keyNum) == false) 
+            keyCache[_keyNum] = Key_Layout.keyObjects[_keyNum].GetComponent<KeyControls>();
 
-            if (debugText != null)
-                debugText.text = "Key " + key_Layout.primaryBindedKeys[_keyNum] + " pressed." + " Key Num: " + _keyNum;
-        }
-        else
-            key.GetGraphics().sprite = keyInActive;
+        KeyControls key = keyCache[_keyNum];
+
+        //int keyZoneValue = -1;
+        //for (int keyNum = 0; keyNum < key_Layout.primaryBindedKeys.Count; keyNum++)
+        //{
+        //    if (Input.GetKey(key_Layout.primaryBindedKeys[keyNum]))
+        //    {
+        //        keyZoneValue = 0;
+        //    }
+
+        //    else if (Input.GetKey(key_Layout.secondaryBindedKeys[keyNum]))
+        //    {
+        //        keyZoneValue = 1;
+        //    }
+
+        //}
+
+        Image graphics = key.GetGraphics();
+        var alpha = _on ? (activeOpacity / activeOpacity) : (inactiveOpacity / activeOpacity);
+
+        graphics.sprite = _on ? keyActive : keyInActive;
+        graphics.color = new Color(graphics.color.r, graphics.color.g, graphics.color.b, alpha);
+
+        if (debugText != null && _on)
+            debugText.text = "Key " + key_Layout.primaryBindedKeys[_keyNum] + " pressed." + " Key Num: " + _keyNum;
+
+        //graphics.color = defaultColor;
 
         return _on;
     }

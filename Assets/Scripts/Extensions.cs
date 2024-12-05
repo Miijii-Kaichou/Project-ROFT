@@ -24,6 +24,12 @@ namespace Extensions
         {
             return value - 1f;
         }
+
+        public static void SetAlpha(this Color _, float alpha)
+        {
+            var original = _;
+            _ = new Color(original.r, original.g, original.b, alpha / 255f);
+        }
     }
 
     public static class Coroutine 

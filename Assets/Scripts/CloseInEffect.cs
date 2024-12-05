@@ -29,7 +29,9 @@ public class CloseInEffect : NoteEffector
 
     public int mapReaderSeqPos;
 
-    public ObjectTypes objReader;
+    public ObjectReader objReader;
+
+    public Vector3 initScale;
 
     //keyInputDownReceived will be given a true for one frame
     //keyInputReceived will be given so long as it's being pressed down for
@@ -58,6 +60,7 @@ public class CloseInEffect : NoteEffector
     //Start
     private void OnEnable()
     {
+        initScale = transform.localScale;
         initiatedNoteSample = noteSample;
         initiatedNoteOffset = base.noteSpawnOffset;
         keyNumPosition = mapReaderSeqPos;
@@ -90,22 +93,20 @@ public class CloseInEffect : NoteEffector
 
     void StartClosingIn()
     {
-        transform.localScale = new Vector3(1f / GetPercentage(), 1f / GetPercentage(), 1f);
+        var scale = new Vector3(1f/ GetPercentage(), 1f / GetPercentage(), 1f);
+        transform.localScale = scale;
 
         if (RoftPlayer.musicSource.timeSamples < initiatedNoteSample)
             image.color = new Color(image.color.r, image.color.g, image.color.b, Mathf.Sin((GetPercentage() * 2f) - 0.25f));
         else
             image.color = new Color(image.color.r, image.color.g, image.color.b, Mathf.Sin((GetPercentage() * 2f) - 0.5f));
 
-        if (innerSprite != null)
-            innerSprite.color = new Color(image.color.r, image.color.g, image.color.b, GetPercentage() - 0.15f);
+        InHitRange();
 
         if (CheckAutoPlay())
             RunAutoPlay();
-
-        InHitRange();
-
-        CheckTimeWindow();
+        else 
+            CheckTimeWindow();
     }
 
     void RunAutoPlay()
@@ -149,12 +150,10 @@ public class CloseInEffect : NoteEffector
     {
         CheckIfOutOfWindow();
 
-        bool tapType = (Key_Layout.Instance.layoutMethod == Key_Layout.LayoutMethod.Abstract &&
-            MapReader.noteObjs[keyNum].GetNoteType() == NoteObj.NoteObjType.Tap &&
+        bool tapType = (MapReader.noteObjs[keyNum].GetNoteType() == NoteObj.NoteObjType.Tap &&
             DetectArrowKeyInput(0));
 
-        bool BurstType = (Key_Layout.Instance.layoutMethod == Key_Layout.LayoutMethod.Abstract &&
-            MapReader.noteObjs[keyNum].GetNoteType() == NoteObj.NoteObjType.Burst &&
+        bool BurstType = (MapReader.noteObjs[keyNum].GetNoteType() == NoteObj.NoteObjType.Burst &&
             attachedArrow != null &&
             DetectArrowKeyInput(1) &&
             GameManager.multiInputValue == 2);
@@ -203,12 +202,10 @@ public class CloseInEffect : NoteEffector
         switch (index)
         {
             case 0:
-                return keyInputDownReceived = Input.GetKeyDown(Key_Layout.Instance.primaryBindedKeys[keyNumPosition]) ||
-                    Input.GetKeyDown(Key_Layout.Instance.secondaryBindedKeys[keyNumPosition]);
+                return keyInputDownReceived = Input.GetKeyDown(Key_Layout.Instance.primaryBindedKeys[keyNumPosition]);
 
             case 1:
-                return keyInputReceived = Input.GetKey(Key_Layout.Instance.primaryBindedKeys[keyNumPosition]) ||
-                        Input.GetKey(Key_Layout.Instance.secondaryBindedKeys[keyNumPosition]);
+                return keyInputReceived = Input.GetKey(Key_Layout.Instance.primaryBindedKeys[keyNumPosition]);
 
             default: break;
         }
@@ -242,7 +239,6 @@ public class CloseInEffect : NoteEffector
 
     public void SendAccuracyScore()
     {
-
         GameObject sign = GetComponentInParent<ObjectPooler>().GetMember("Signs");
         if (!sign.activeInHierarchy)
         {
@@ -255,9 +251,7 @@ public class CloseInEffect : NoteEffector
             GameManager.Instance.accuracyStats[index] += 1;
             float inverse = ((possibleAccuracy - (index)));
             float percent = inverse / possibleAccuracy;
-            GameManager.Instance.accuracyPercentile += (percent * 100f);
-            GameManager.Instance.overallAccuracy = (GameManager.Instance.accuracyPercentile / GameManager.Instance.GetSumOfStats());
-            GameManager.Instance.UpdateScore();
+            GameManager.UpdateAccuracyPercentile(percent * 100f, true);
         }
     }
 
@@ -273,8 +267,7 @@ public class CloseInEffect : NoteEffector
     public void BreakComboChain()
     {
         GameManager.Instance.accuracyStats[4] += 1;
-        GameManager.Instance.accuracyPercentile += (((possibleAccuracy - index) / possibleAccuracy) * 100);
-        GameManager.Instance.overallAccuracy = GameManager.Instance.accuracyPercentile / GameManager.Instance.GetSumOfStats();
+        GameManager.UpdateAccuracyPercentile((((possibleAccuracy - index) / possibleAccuracy) * 100), true, true);
         GameManager.Instance.SetCombo(m_break);
 
         GameObject sign = GetComponentInParent<ObjectPooler>().GetMember("Signs");
@@ -315,7 +308,7 @@ public class CloseInEffect : NoteEffector
     private void OnDisable()
     {
         if (image != null)
-            image.color = originalAppearance;
+            image.color = originalAppearance * new Color(1,1,1,0);
 
         if (innerSprite != null) innerSprite.color = originalAppearance;
 
@@ -326,7 +319,7 @@ public class CloseInEffect : NoteEffector
         noteSpawnOffset = 0;
         accuracyString = "";
         keyNum = 0; //We know what note we're on!!
-
+        transform.localScale = initScale;
         dispose = false;
     }
 
@@ -336,18 +329,15 @@ public class CloseInEffect : NoteEffector
     {
         GameObject key;
 
-        if (Key_Layout.Instance.layoutMethod == Key_Layout.LayoutMethod.Abstract)
-        {
-            key = Key_Layout.keyObjects[keyNumPosition];
-            key.GetComponent<PulseEffect>().DoPulseReaction(0.15f);
-            key.GetComponentInChildren<PulseEffect>().DoPulseReaction(0.15f);
+        key = Key_Layout.keyObjects[keyNumPosition];
+        key.GetComponent<PulseEffect>().DoPulseReaction(0.15f);
+        key.GetComponentInChildren<PulseEffect>().DoPulseReaction(0.15f);
 
-            CreateRipple();
+        CreateRipple();
 
-            GameManager.Instance.GetTMCombo().GetComponent<PulseEffect>().DoPulseReaction(0.05f);
-            GameManager.Instance.GetTMComboUnderlay().GetComponent<PulseEffect>().DoPulseReaction();
-            GameManager.Instance.GetScreenOverlay().GetComponent<OverlayPulseEffect>().DoPulseReaction();
-        }
+        GameManager.Instance.GetTMCombo().GetComponent<PulseEffect>().DoPulseReaction(0.05f);
+        GameManager.Instance.GetTMComboUnderlay().GetComponent<PulseEffect>().DoPulseReaction();
+        GameManager.Instance.GetScreenOverlay().GetComponent<OverlayPulseEffect>().DoPulseReaction();
     }
 
     void CreateRipple()
@@ -358,30 +348,27 @@ public class CloseInEffect : NoteEffector
 
         ObjectPooler pooler;
 
-        if (Key_Layout.Instance.layoutMethod == Key_Layout.LayoutMethod.Abstract)
+        //Get the key object based on position
+        key = Key_Layout.keyObjects[keyNumPosition];
+
+        //Reference the object pooler so we can get the ripple effect
+        pooler = key.GetComponent<ObjectPooler>();
+
+        //Use the pooler object, and get the RippleEffect member
+        effectObj = pooler.GetMember("RippleEffect");
+
+        //Enable the effectObj
+        if (!effectObj.activeInHierarchy)
         {
-            //Get the key object based on position
-            key = Key_Layout.keyObjects[keyNumPosition];
-
-            //Reference the object pooler so we can get the ripple effect
-            pooler = key.GetComponent<ObjectPooler>();
-
-            //Use the pooler object, and get the RippleEffect member
-            effectObj = pooler.GetMember("RippleEffect");
-
-            //Enable the effectObj
-            if (!effectObj.activeInHierarchy)
-            {
-                effectObj.SetActive(true);
-                effectObj.transform.position = transform.position;
-                effectObj.transform.rotation = Quaternion.identity;
-            }
-
-            //Get the ripple effect component
-            effect = effectObj.GetComponent<RippleEffect>();
-
-            //do the ripple affect
-            effect.DoRippleEffect(image.color);
+            effectObj.SetActive(true);
+            effectObj.transform.position = transform.position;
+            effectObj.transform.rotation = Quaternion.identity;
         }
+
+        //Get the ripple effect component
+        effect = effectObj.GetComponent<RippleEffect>();
+
+        //do the ripple affect
+        effect.DoRippleEffect(image.color);
     }
 }

@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   typeOuterTexture: {fileID: 21300000, guid: b913a1e39cc07f74da9d901d5b636685, type: 3}
   typeInnerTexture: {fileID: 0}
-  typeColor: {r: 0.4669811, g: 0.5614424, b: 1, a: 1}
+  typeColor: {r: 0.495283, g: 0.75047535, b: 1, a: 1}

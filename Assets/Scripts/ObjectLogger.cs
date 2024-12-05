@@ -167,9 +167,18 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         }
     }
 
-    public TextMeshProUGUI TMP_Tick;
-    public TextMeshProUGUI TMP_PatternSet;
-    public TextMeshProUGUI TMP_StackValue;
+    [SerializeField]
+    private TextMeshProUGUI TMP_Tick;
+    
+    [SerializeField]
+    private TextMeshProUGUI TMP_PatternSet;
+    
+    [SerializeField]
+    private TextMeshProUGUI TMP_StackValue;
+
+    [SerializeField]
+    private Key_Layout _keyLayout;
+
     public enum LoggerSize
     {
         WALTZ = 3,
@@ -190,7 +199,8 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         BURST
     }
 
-    public LoggerSize loggerSize = LoggerSize.WHOLE;
+    [SerializeField]
+    private LoggerSize loggerSize = LoggerSize.WHOLE;
 
     [Range(1f, 4f)]
     public float rate = 1f;
@@ -229,15 +239,15 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     const float reset = 0f;
 
     //Data
-    public int keyData;
-    public long sampleData;
-    public int typeData;
+    int _keyData;
+    long _sampleData;
+    int _typeData;
 
     //Unique data
-    public long finishSample; //For hold type
-    public List<TrackPoint> trackPoints; //For track type
-    public int burstDirection; //For burst type
-    List<float> fixedSampleData = new List<float>();
+    long _finishSample; //For hold type
+    List<TrackPoint> _trackPoints; //For track type
+    int _burstDirection; //For burst type
+    List<float> _fixedSampleData = new List<float>();
 
     string dataFormat;
 
@@ -296,7 +306,7 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
                     {
                         TickValue += Mathf.Sign(scrollDirection);
                         RefreshLoggerData();
-                        RoftPlayer.musicSource.timeSamples = (int)fixedSampleData[(int)currentTick];
+                        RoftPlayer.musicSource.timeSamples = (int)_fixedSampleData[(int)currentTick];
                         CheckTick();
                     }
                     else Next();
@@ -443,7 +453,7 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
                 {
                     float sample = timePosition * RoftPlayer.musicSource.clip.frequency;
                     tickValue = samplesPerBeat;
-                    fixedSampleData.Add(sample);
+                    _fixedSampleData.Add(sample);
                 }
 
                 totalPatternSets = Mathf.Round(samplesPerBeat / (float)loggerSize);
@@ -453,7 +463,7 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         for (int i = 0; i < totalPatternSets; i++)
         {
             PatternSet newSet = new PatternSet();
-            newSet.Init((int)loggerSize, fixedSampleData[i]);
+            newSet.Init((int)loggerSize, _fixedSampleData[i]);
             patternSets.Add(newSet);
         }
         #endregion
@@ -492,41 +502,41 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         {
             case NoteTool.TAP:
 
-                Instance.keyData = (int)args[0];
-                Instance.sampleData = (long)args[1];
-                Instance.typeData = (int)args[2];
+                Instance._keyData = (int)args[0];
+                Instance._sampleData = (long)args[1];
+                Instance._typeData = (int)args[2];
 
-                TapObj tapObj = new TapObj((uint)Instance.keyData, Instance.sampleData);
+                TapObj tapObj = new TapObj((uint)Instance._keyData, Instance._sampleData);
 
                 LogIntoSet(tapObj);
                 return;
 
             case NoteTool.HOLD:
-                Instance.keyData = (int)args[0];
-                Instance.sampleData = (long)args[1];
-                Instance.typeData = (int)args[2];
-                Instance.finishSample = (long)args[3];
+                Instance._keyData = (int)args[0];
+                Instance._sampleData = (long)args[1];
+                Instance._typeData = (int)args[2];
+                Instance._finishSample = (long)args[3];
 
-                HoldObj holdObj = new HoldObj((uint)Instance.keyData, Instance.sampleData, Instance.finishSample);
+                HoldObj holdObj = new HoldObj((uint)Instance._keyData, Instance._sampleData, Instance._finishSample);
 
                 LogIntoSet(holdObj);
                 return;
 
             case NoteTool.TRACK:
-                Instance.keyData = (int)args[0];
-                Instance.sampleData = (long)args[1];
-                Instance.typeData = (int)args[2];
+                Instance._keyData = (int)args[0];
+                Instance._sampleData = (long)args[1];
+                Instance._typeData = (int)args[2];
 
                 //TODO: Start adding points
                 return;
 
             case NoteTool.BURST:
-                Instance.keyData = (int)args[0];
-                Instance.sampleData = (long)args[1];
-                Instance.typeData = (int)args[2];
-                Instance.burstDirection = (int)args[3];
+                Instance._keyData = (int)args[0];
+                Instance._sampleData = (long)args[1];
+                Instance._typeData = (int)args[2];
+                Instance._burstDirection = (int)args[3];
 
-                BurstObj burstObj = new BurstObj((uint)Instance.keyData, Instance.sampleData, (uint)Instance.burstDirection);
+                BurstObj burstObj = new BurstObj((uint)Instance._keyData, Instance._sampleData, (uint)Instance._burstDirection);
 
                 LogIntoSet(burstObj);
                 return;
@@ -569,6 +579,8 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
         StackSavedData(data.ToString());
 
+        Debug.Log(ObjectData);
+
         RoftIO.CreateNewRFTM(RoftCreator.filename, RoftCreator.newSongDirectoryPath);
     }
 
@@ -609,8 +621,30 @@ public class ObjectLogger : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         Instance.blocks[(int)Instance.tick].GetComponent<Button>().image.color = Instance.c_tickTimeData;
     }
 
-    public static long GetFinishSample() => Instance.finishSample;
-    public static List<TrackPoint> GetTrackPoints() => Instance.trackPoints;
-    public static int GetBurstDirection() => Instance.burstDirection;
+    public static long GetFinishSample() => Instance._finishSample;
+    public static List<TrackPoint> GetTrackPoints() => Instance._trackPoints;
+    public static int GetBurstDirection() => Instance._burstDirection;
     public static bool IsNull() => Instance == null;
+
+    public static float Get_BPM() => Instance.bpm;
+    public static float Get_Offset() => Instance.offsetInSeconds;
+
+    static float CalculateDifficultyRating(int notesCounted)
+    {
+            int totalNotes = notesCounted;
+            float songLengthInSec = RoftPlayer.musicSource.clip.length;
+            float notesPerSec = (totalNotes / songLengthInSec);
+            float totalKeys = (float)RoftCreator.GetTotalKeys();
+            float approachSpeedInPercent = (float)NoteEffector.Instance.ApproachSpeed / 100;
+            float gameModeBoost = 0;
+            const int maxKeys = 30;
+
+            float calculatedRating = notesPerSec +
+                (totalKeys / maxKeys) +
+                approachSpeedInPercent +
+                (RoftPlayer.musicSource.pitch / 2) +
+                gameModeBoost;
+
+           return calculatedRating;
+    }
 }

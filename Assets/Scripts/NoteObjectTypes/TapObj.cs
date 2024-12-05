@@ -8,7 +8,7 @@ public class TapObj : NoteObj
         Type = NoteObjType.Tap;
     }
 
-    public override string AsString() => $"{InitialKey},{InitialSample},{Type},{PatternSetValue},{TickValue},{LayerValue}";
+    public override string AsString() => $"{InitialKey},{InitialSample},{(int)Type},{PatternSetValue},{TickValue},{LayerValue}";
 
     public override bool Empty() => base.Empty();
     public override void Clear() => base.Clear();

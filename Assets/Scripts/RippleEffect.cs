@@ -45,8 +45,6 @@ public class RippleEffect : MonoBehaviour
 
     IEnumerator Run()
     {
-        const float SIXTYITH_OF_SEC = (1f / 60f);
-
         while (true)
         {
             if (!GameManager.Instance.IsGamePaused)
@@ -65,7 +63,7 @@ public class RippleEffect : MonoBehaviour
                 opacity -= deltaOpacity;
 
                 //Add opacity to sprite alpha channel
-                spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, opacity - 0.5f);
+                spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, Mathf.Log(opacity - 0.25f));
 
                 //Now we check if the opacity is 0
                 if (opacity <= 0f)
@@ -73,7 +71,7 @@ public class RippleEffect : MonoBehaviour
                     gameObject.SetActive(false);
             }
 
-            yield return new WaitForSeconds(SIXTYITH_OF_SEC);
+            yield return new WaitForSeconds(1f / 60f);
         }
     }
 

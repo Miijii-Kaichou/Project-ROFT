@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-public class ClickObjectReader : ObjectTypes
+public class ClickObjectReader : ObjectReader
 {
     public override void ReadClicksFromFile()
     {

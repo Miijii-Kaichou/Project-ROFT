@@ -147,15 +147,16 @@ public class MapReader : Singleton<MapReader>
                         while (true)
                         {
                             line = rftmReader.ReadLine();
-                            if (line == null)
-                            {
-                                KeysReaded = true;
-                                return;
-                            }
-
 
                             if (filePosition > targetPosition)
                             {
+                                //Before we parse a line, check if there's a null or return
+                                if (line == null || line == string.Empty)
+                                {
+                                    KeysReaded = true;
+                                    return;
+                                }
+
                                 #region Parse and Convert Information
 
                                 //We create a new key, and assign our data value to our key
@@ -230,7 +231,7 @@ public class MapReader : Singleton<MapReader>
     /// Parse line infomation from the .rftm to Note Objects based on corresponding types
     /// </summary>
     /// <returns></returns>
-    static NoteObj ParseNewNote()
+    static NoteObj ParseNewNote(bool fromEditor = false)
     {
         //Check the type of the New Note Object
         switch ((NoteObj.NoteObjType)Convert.ToInt32(line.Split(separator)[2]))
@@ -308,32 +309,29 @@ public class MapReader : Singleton<MapReader>
         {
             int difficultyTag = InRFTMJumpTo("Difficulty", m_name);
             string keyLayout = ReadPropertyFrom<string>(difficultyTag, "KeyLayout", m_name);
-            Instance.keyLayoutClass.KeyLayout = (Key_Layout.KeyLayoutType)Enum.Parse(typeof(Key_Layout.KeyLayoutType), keyLayout);
+            Instance.keyLayoutClass.KeyLayout = (KeyLayoutType)Enum.Parse(typeof(KeyLayoutType), keyLayout);
             #region KeyCount through Enum
             switch (Instance.keyLayoutClass.KeyLayout)
             {
-                case Key_Layout.KeyLayoutType.Layout_1x4:
-                    totalKeys = 4;
-                    break;
-                case Key_Layout.KeyLayoutType.Layout_2x4:
+                case KeyLayoutType.Layout_2x4:
                     totalKeys = 8;
                     break;
-                case Key_Layout.KeyLayoutType.Layout_3x4:
+                case KeyLayoutType.Layout_3x4:
                     totalKeys = 12;
                     break;
-                case Key_Layout.KeyLayoutType.Layout_4x4:
+                case KeyLayoutType.Layout_4x4:
                     totalKeys = 16;
                     break;
-                case Key_Layout.KeyLayoutType.Layout_3x6:
+                case KeyLayoutType.Layout_3x6:
                     totalKeys = 18;
                     break;
-                case Key_Layout.KeyLayoutType.Layout_4x6:
+                case KeyLayoutType.Layout_4x6:
                     totalKeys = 24;
                     break;
-                case Key_Layout.KeyLayoutType.Layout_3x8:
+                case KeyLayoutType.Layout_3x8:
                     totalKeys = 24;
                     break;
-                case Key_Layout.KeyLayoutType.Layout_4x8:
+                case KeyLayoutType.Layout_4x8:
                     totalKeys = 32;
                     break;
                 default:
@@ -343,14 +341,13 @@ public class MapReader : Singleton<MapReader>
         }
 
 
-        if (Key_Layout.Instance != null &&
-            GameManager.Instance.GetGameMode == GameManager.GameMode.TECHMEISTER ||
-            GameManager.Instance.GetGameMode == GameManager.GameMode.STANDARD)
+        if (Key_Layout.Instance != null)
             Instance.keyLayoutClass.SetUpLayout();
 
+        //GameManager.GetAutoplayText().gameObject.SetActive(GameManager.Instance.isAutoPlaying);
     }
 
-    static void DistributeTypeTo(ObjectTypes _objectReader, NoteObj _key)
+    static void DistributeTypeTo(ObjectReader _objectReader, NoteObj _key)
     {
         if (_objectReader != null)
             _objectReader.objects.Add(_key);
@@ -412,7 +409,7 @@ public class MapReader : Singleton<MapReader>
 
     public static long GetMaxScore() => maxScore;
 
-    public static ObjectTypes GetReaderType<T>() where T : ObjectTypes
+    public static ObjectReader GetReaderType<T>() where T : ObjectReader
     {
         if (typeof(T) == Instance.tapObjectReader.GetType())
             return Instance.tapObjectReader;
@@ -429,7 +426,6 @@ public class MapReader : Singleton<MapReader>
 
     public static void WrapUp()
     {
-        Debug.Log("Wrapping Up ");
         if (Instance.keyLayoutClass.gameObject.activeInHierarchy)
             Instance.keyLayoutClass.Flush();
 

@@ -28,17 +28,6 @@ public class AppearEffect : CloseInEffect
             if (overlaySprite != image)
                 childSprite = overlaySprite;
         }
-
-        if (Key_Layout.Instance != null && Key_Layout.Instance.layoutMethod == Key_Layout.LayoutMethod.Region_Scatter)
-        {
-            //We want these completely transparent from start
-            childSprite.color = new Color(childSprite.color.r, childSprite.color.g, childSprite.color.b, 0f);
-            image.color = new Color(image.color.r, image.color.g, image.color.b, 0f);
-
-            //Assign this to orignal variable
-            originalAppearance = image.color;
-            originalOverlayAppearance = childSprite.color;
-        }
     }
 
     private void OnEnable()
@@ -49,18 +38,6 @@ public class AppearEffect : CloseInEffect
         {
             if (overlaySprite != image)
                 childSprite = overlaySprite;
-        }
-
-
-        if (Key_Layout.Instance.layoutMethod == Key_Layout.LayoutMethod.Region_Scatter)
-        {
-            //We want these completely transparent from start
-            childSprite.color = new Color(childSprite.color.r, childSprite.color.g, childSprite.color.b, 0f);
-            image.color = new Color(image.color.r, image.color.g, image.color.b, 0f);
-
-            //Assign this to orignal variable
-            originalAppearance = image.color;
-            originalOverlayAppearance = childSprite.color;
         }
     }
 

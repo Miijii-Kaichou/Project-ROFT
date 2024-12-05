@@ -16,74 +16,60 @@ public class KeyConfig
     //No! Actually, what we want to do is take all of those values out from Key_Layout, and move it to this class.
     //Now that I think about it, having a separate class to handle the configuration of the layout of the keys
     //sounds a lot more to handle, and I really do approve that message! Yay!!!!!!
-    public float[] keyXOffset = new float[10]
+    public float[] keyXOffset = new float[]
     {
-        -11f,
         -9.75f,
         -9.25f,
         -9.25f,
-        -13f, 
+        -13f,
         -13f,
         -17.5f,
-        -16.5f,
-        -20f,
-        -20f
+        -16.5f
     };
 
-    public float[] keyYOffset  = new float[10]
+    public float[] keyYOffset = new float[]
     {
-        0.5f,
         3f,
         5f,
         6.75f,
         4.75f,
         6.75f,
         4.75f,
-        6.75f,
-        5f,
-        6f,
+        6.75f
     };
 
-    public float[] defaultKeyScale = new float[10]
+    public float[] keyLayoutScale = new float[]
     {
-        2.5f,
-        2.25f,
-        1.8f,
-        1.62f,
-        1.75f,
-        1.5f,
-        1.75f,
-        1.5f,
-        1.5f,
-        1.80f
+        140f,
+        108f,
+        90f,
+        106f,
+        85f,
+        85f,
+        90f
     };
 
-    public float[] keyHorizontalSpread  = new float[10]
+
+    public float[] keyHorizontalSpread = new float[]
     {
-        3.5f,
         3f,
         2.5f,
+        3f,
+        2.6f,
         2.5f,
-        2.25f,
-        2.0f,
-        2.25f,
-        2.0f,
-        2f,
-        1.5f
+        2.5f,
+        2.0f
     };
 
-    public float[] keyVerticalSpread = new float[10]
+    public float[] keyVerticalSpread = new float[]
     {
-        3.5f,
         3f,
+        2.75f,
+        2.4f,
+        2.6f,
         2.5f,
-        2.0f,
-        2.25f,
-        2.0f,
-        2.25f,
-        2.0f,
-        2f,
-        1.5f
+        2.5f,
+        2.0f
     };
 
     //String info
@@ -107,11 +93,11 @@ public class KeyConfig
     private void CreateJSON()
     {
         //Simply make this into a JSON
-        json = JsonUtility.ToJson(Instance);
+        json = JsonUtility.ToJson(Instance, true);
         File.WriteAllText(Application.persistentDataPath + "/keyConfig.json", json);
     }
 
-    public float[] GetDefaultKeyScale => defaultKeyScale;
+    public float[] GetKeyLayoutScale => keyLayoutScale;
     public float[] GetHorizontalSpread => keyHorizontalSpread;
     public float[] GetVerticalSpread => keyVerticalSpread;
     public float[] GetXOffset => keyXOffset;

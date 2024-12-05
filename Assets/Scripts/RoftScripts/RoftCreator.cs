@@ -1,14 +1,9 @@
 ﻿using System.IO;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Video;
 
 using ROFTIOMANAGEMENT;
-using Extensions;
-
 
 using FileEx = Extensions.File;
 
@@ -44,7 +39,7 @@ public class RoftCreator : MonoBehaviour
     [SerializeField] private string songTitleUnicode;
     [SerializeField] private string songArtistUnicode;
     [SerializeField] private string difficultyName;
-    [SerializeField] private Key_Layout.KeyLayoutType keyLayout;
+    [SerializeField] private KeyLayoutType keyLayout;
 
     [Header("Difficulty Setup")]
     [SerializeField, Range(1f, 10f)] private float approachSpeed;
@@ -191,7 +186,7 @@ public class RoftCreator : MonoBehaviour
     /// Get total keys being used.
     /// </summary>
     /// <returns></returns>
-    public static Key_Layout.KeyLayoutType GetTotalKeys() => Instance.keyLayout;
+    public static KeyLayoutType GetTotalKeys() => Instance.keyLayout;
 
     /// <summary>
     /// Get the harshness of difficulty being used.
@@ -227,7 +222,7 @@ public class RoftCreator : MonoBehaviour
     /// Get Key Layout being used.
     /// </summary>
     /// <returns></returns>
-    public static Key_Layout.KeyLayoutType GetKeyLayout() => Instance.keyLayout;
+    public static KeyLayoutType GetKeyLayout() => Instance.keyLayout;
 
     #endregion
 }

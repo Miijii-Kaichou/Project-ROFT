@@ -14,7 +14,7 @@ public class HoldObj : NoteObj
         Type = NoteObjType.Hold;
     }
 
-    public override string AsString() => $"{InitialKey},{InitialSample},{Type},{FinalSample},{PatternSetValue},{TickValue},{LayerValue}";
+    public override string AsString() => $"{InitialKey},{InitialSample},{(int)Type},{FinalSample},{PatternSetValue},{TickValue},{LayerValue}";
 
     public override bool Empty() =>
         (InitialKey == 0 && InitialSample == 0 && Type == default && FinalSample == 0);

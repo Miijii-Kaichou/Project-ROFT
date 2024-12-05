@@ -202,99 +202,9 @@ namespace ROFTIOMANAGEMENT
         /// <param name="_path">The path in which to create the file.</param>
         public static void CreateNewRFTM(string _name, string _path)
         {
-            #region Formatting (RFTM FILE FORMAT VERSION 1.4)
-            string newLine = "\n";
-
-            #region Format Version
-            string t_version = "Format Version".AsTag();
-            string p_formatVer = "1.4v" + newLine;
-            #endregion
-
-            #region [General]
-            string t_general = "General".AsTag();
-            string p_Author = "Author".AsProperty(System.Environment.UserName) + newLine;
-            string p_AudioFileName = "AudioFilename".AsProperty(RoftCreator.audioFilePath) + newLine;
-            string p_BackgroundImage = "BackgroundImage".AsProperty(RoftCreator.backgroundFilePath) + newLine;
-            string p_BackgroundVideo = "BackgroundVideo".AsProperty() + newLine;
-            #endregion
-
-            #region [Metadata]
-            string t_metadata = "Metadata".AsTag();
-            string p_Title = "Title".AsProperty(RoftCreator.GetSongTitle()) + newLine;
-            string p_TitleUnicode = "TitleUnicode".AsProperty(RoftCreator.GetSongTitle(true)) + newLine;
-            string p_Artist = "Artist".AsProperty(RoftCreator.GetSongArtist()) + newLine;
-            string p_ArtistUnicode = "ArtistUnicode".AsProperty(RoftCreator.GetSongArtist(true)) + newLine;
-            string p_Creator = "Creator".AsProperty(System.Environment.UserName) + newLine;
-            string p_ROFTID = "ROFTID".AsProperty(RoftCreator.GetROFTID()) + newLine;
-            string p_GROUPID = "GROUPID".AsProperty(RoftCreator.GetGROUPID()) + newLine;
-            #endregion
-
-            #region [Difficulty]
-            string t_difficulty = "Difficulty".AsTag();
-            string p_DifficultyName = "DifficultyName".AsProperty(RoftCreator.GetDifficultyName()) + newLine;
-            string p_StressBuild = "StressBuild".AsProperty(RoftCreator.GetStressBuild().ToString()) + newLine;
-            string p_ObjectCount = "ObjectCount".AsProperty(!ObjectLogger.IsNull() ? ObjectLogger.GetObjectCount() : 0) + newLine;
-            #region Key Count
-            string keyInfo = RoftCreator.GetTotalKeys().ToString();
-
-            #endregion
-            string p_KeyCount = "KeyLayout".AsProperty(keyInfo) + newLine;
-
-            string p_AccuracyHarshness = "AccuracyHarshness".AsProperty(RoftCreator.GetAccuracyHarshness()) + newLine;
-            string p_ApproachSpeed = "ApproachSpeed".AsProperty(RoftCreator.GetApproachSpeed()) + newLine;
-            #endregion
-
-            #region [Timing]
-            string t_timing = "Timing".AsTag() + newLine;
-            #endregion
-
-            #region [Objects]
-            string t_objects = "Objects".AsTag();
-            string objectData = !ObjectLogger.IsNull() ? ObjectLogger.ObjectData : "NIL";
-            #endregion
-
-            #region .RFTM Information Compilation
-            string[] rftmInformation = new string[]
-            {
-                   //Format Version
-                   t_version +
-                   p_formatVer,
-
-                   //General
-                   t_general +
-                   p_Author +
-                   p_AudioFileName +
-                   p_BackgroundImage +
-                   p_BackgroundVideo,
-
-                   //Metadata
-                   t_metadata +
-                   p_Title +
-                   p_TitleUnicode +
-                   p_Artist +
-                   p_ArtistUnicode +
-                   p_Creator +
-                   p_ROFTID +
-                   p_GROUPID,
-
-                   //Timing
-                   t_timing,
-
-                   //Difficulty
-                   t_difficulty +
-                   p_DifficultyName +
-                   p_StressBuild +
-                   p_ObjectCount +
-                   p_KeyCount +
-                   p_AccuracyHarshness +
-                   p_ApproachSpeed,
-
-                   //Objects
-                   t_objects +
-                   objectData
-            };
-            #endregion
-
+            #region Formatting (RFTM FILE FORMAT VERSION 1.06)
+            RoftFormat roftFormatObj = RoftFormat.New();
+            string[] formatString = roftFormatObj.GetFormatInfo();
             #endregion
 
             #region Creation/Overwrite Process
@@ -307,8 +217,8 @@ namespace ROFTIOMANAGEMENT
                     Debug.Log("Creating new .rftm file...");
                     using (StreamWriter rftmWriter = File.CreateText(rftmFilePath))
                     {
-                        for (int line = 0; line < rftmInformation.Length; line++)
-                            rftmWriter.WriteLine(rftmInformation[line]);
+                        for (int line = 0; line < formatString.Length; line++)
+                            rftmWriter.WriteLine(formatString[line]);
                     }
                     Debug.Log(".rftm file created!");
                 }
@@ -322,8 +232,8 @@ namespace ROFTIOMANAGEMENT
                         {
                             rftmWriter.Flush();
 
-                            for (int line = 0; line < rftmInformation.Length; line++)
-                                rftmWriter.WriteLine(rftmInformation[line]);
+                            for (int line = 0; line < formatString.Length; line++)
+                                rftmWriter.WriteLine(formatString[line]);
                         }
                     }
                     Debug.Log("Successfully overwritten!");

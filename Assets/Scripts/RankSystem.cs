@@ -68,7 +68,7 @@ public class RankSystem : Singleton<RankSystem>
         {
             //Check if overall Accuracy is above percentage values
             //We'll simple return out of for loop if statement is true
-            if (GameManager.Instance.overallAccuracy >= GPR[gradeIndex] * 100f)
+            if (GameManager.GetOverallAccuracy() >= GPR[gradeIndex] * 100f)
             {
                 //This will give use string value of our Grade enumerator
                 Instance.gradeRank = (Grade)gradeIndex;

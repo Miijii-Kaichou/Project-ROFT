@@ -2,7 +2,6 @@
 using UnityEngine;
 
 using ROFTIOMANAGEMENT;
-using System;
 using System.Collections;
 
 public class NoteEffector : MonoBehaviour
@@ -96,24 +95,29 @@ public class NoteEffector : MonoBehaviour
     {
         RetrieveEffectConfigs();
         UpdateAccuracyHarshness();
+        StartCoroutine(SpawnCycle());
     }
 
-    // Update is called once per frame
-    void Update()
+    IEnumerator SpawnCycle()
     {
-        UpdateNoteOffset();
-        UpdateAccuracyHarshness();
-
-        if (!RoftPlayer.Record && RoftPlayer.musicSource != null)
+        while (true)
         {
-            if (ManageObjTypeSequence(MapReader.GetReaderType<TapObjectReader>())) 
-                SpawnNoteObj(MapReader.GetReaderType<TapObjectReader>());
+            UpdateNoteOffset();
+            UpdateAccuracyHarshness();
 
-            if (ManageObjTypeSequence(MapReader.GetReaderType<HoldObjectReader>())) 
-                SpawnNoteObj(MapReader.GetReaderType<HoldObjectReader>());
+            if (!RoftPlayer.Record && RoftPlayer.musicSource != null)
+            {
+                if (ManageObjTypeSequence(MapReader.GetReaderType<TapObjectReader>()))
+                    SpawnNoteObj(MapReader.GetReaderType<TapObjectReader>());
 
-            if (ManageObjTypeSequence(MapReader.GetReaderType<BurstObjectReader>())) 
-                SpawnNoteObj(MapReader.GetReaderType<BurstObjectReader>());
+                if (ManageObjTypeSequence(MapReader.GetReaderType<HoldObjectReader>()))
+                    SpawnNoteObj(MapReader.GetReaderType<HoldObjectReader>());
+
+                if (ManageObjTypeSequence(MapReader.GetReaderType<BurstObjectReader>()))
+                    SpawnNoteObj(MapReader.GetReaderType<BurstObjectReader>());
+            }
+
+            yield return null;
         }
     }
 
@@ -122,7 +126,7 @@ public class NoteEffector : MonoBehaviour
     /// the playing filed
     /// </summary>
     /// <param name="_objReader">Object Reader of a certain type.</param>
-    void SpawnNoteObj(ObjectTypes _objReader = null)
+    void SpawnNoteObj(ObjectReader _objReader = null)
     {
 
         int sequencePos = (int)_objReader.GetSequencePosition();
@@ -136,6 +140,7 @@ public class NoteEffector : MonoBehaviour
             //Most of this information is from the MapReader, in which that object
             //reads from the song file. 
             #endregion
+
             NoteObj objToBeSpawned = _objReader.objects[sequencePos];
 
             int objId = (int)objToBeSpawned.GetKey();
@@ -165,22 +170,24 @@ public class NoteEffector : MonoBehaviour
     /// <param name="_obj">This object must be a gameObject assigned from an ObjectPooler
     /// mainly with GetTypeFromPool()</param>
     /// <param name="_objReader">Object Reader of a certain type.</param>
-    private void WakeUpNoteMember(ref GameObject _obj, ObjectTypes _objReader)
+    private void WakeUpNoteMember(ref GameObject _obj, ObjectReader _objReader)
     {
         int sequencePos = (int)_objReader.GetSequencePosition();
 
         NoteObj targetObj = _objReader.objects[sequencePos];
 
+        GameObject currentKeyObject = Key_Layout.keyObjects[(int)targetObj.GetKey()];
+
         _obj.SetActive(true);
-        _obj.transform.position = Key_Layout.keyObjects[(int)targetObj.GetKey()].transform.position;
-        _obj.transform.localScale = Key_Layout.keyObjects[(int)targetObj.GetKey()].transform.localScale;
+        _obj.transform.position = currentKeyObject.transform.position;
+        _obj.transform.localScale = currentKeyObject.transform.localScale;
     }
 
     /// <summary>
     /// Change the sequence number of a specified Object Reader
     /// </summary>
     /// <param name="_objReader"></param>
-    private void UpdateToNextNote(ObjectTypes _objReader)
+    private void UpdateToNextNote(ObjectReader _objReader)
     {
         _objReader.Next();
     }
@@ -191,7 +198,7 @@ public class NoteEffector : MonoBehaviour
     /// </summary>
     /// <param name="_objReader">Object Reader of a certain type.</param>
     /// <returns></returns>
-    bool ManageObjTypeSequence(ObjectTypes _objReader)
+    bool ManageObjTypeSequence(ObjectReader _objReader)
     {
         int sequencePos = (int)_objReader.GetSequencePosition();
 
@@ -239,11 +246,11 @@ public class NoteEffector : MonoBehaviour
     /// </summary>
     /// <param name="_effect">The effect responsible for the Note Objects closing in.</param>
     /// <param name="_objReader">Object Reader of a certain type.</param>
-    void AssignPosition(CloseInEffect _effect, ObjectTypes _objReader)
+    void AssignPosition(CloseInEffect _effect, ObjectReader _objReader)
     {
         int sequencePos = (int)_objReader.GetSequencePosition();
 
-        NoteObj noteObj = null;
+        NoteObj noteObj;
 
         _effect.initiatedNoteSample = noteSample;
         _effect.initiatedNoteOffset = noteSpawnOffset;

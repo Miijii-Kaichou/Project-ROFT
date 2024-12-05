@@ -29,7 +29,6 @@ public class AccuracySign : MonoBehaviour
     IEnumerator Run(float _rate)
     {
         float opacity = 1f;
-        const float SIXTYITH_OF_SEC = (1f / 60f);
         while (true)
         {
             if (!GameManager.Instance.IsGamePaused)
@@ -44,7 +43,7 @@ public class AccuracySign : MonoBehaviour
                 }
 
             }
-            yield return new WaitForSeconds(SIXTYITH_OF_SEC);
+            yield return new WaitForSeconds(1f / 100f);
         }
     }
 

@@ -55,14 +55,6 @@ public class GameManager : MonoBehaviour
      * KEY_ONLY will be what I've been having for ages
      * And TBR refers to "Type-By-Region"
      */
-    public enum GameMode
-    {
-        STANDARD,
-        TECHMEISTER,
-        TBR_HOMEROW,
-        TBR_ALL
-    };
-
     [SerializeField]
     private SongList SongList;
 
@@ -102,16 +94,6 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private GameObject PAUSE_OVERLAY = null;
 
-    [Header("Game Modes")]
-    [SerializeField] private GameMode gameMode = default;
-    public GameMode GetGameMode
-    {
-        get
-        {
-            return gameMode;
-        }
-    }
-
     [Header("UI TEXT MESH PRO")]
     [SerializeField] private TextMeshProUGUI TM_SONGNAME = null;
     [SerializeField] private TextMeshProUGUI TM_TOTALNOTES = null;
@@ -128,6 +110,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI TM_OK = null;
     [SerializeField] private TextMeshProUGUI TM_MISS = null;
     [SerializeField] private TextMeshProUGUI TM_ACCURACYPERCENTILE = null;
+    [SerializeField] private TextMeshProUGUI TM_AUTOPLAY = null;
     public TextMeshProUGUI TM_ACCURACYGRADE = null;
     [SerializeField] private TextMeshProUGUI DEBUG_FILEDIR = null;
 
@@ -148,12 +131,13 @@ public class GameManager : MonoBehaviour
     public float GAME_DELTA { get; private set; } = 0.01f;
 
     private int maxCombo;
-    public float overallAccuracy = 100.00f; //The average accuracy during the song
-    public float accuracyPercentile; //The data in which gets accuracy in percent;
-    public float overallGrade = 0f;
+    private float overallAccuracy = 100.00f; //The average accuracy during the song
+    private float accuracyPercentile; //The data in which gets accuracy in percent;
+    private float overallGrade = 0f;
     [Range(1f, 10f)] public float stressBuild = 5f;
     public int[] accuracyStats = new int[5];
     public bool isAutoPlaying;
+    public bool isNoFail;
 
     private readonly int reset = 0;
 
@@ -273,12 +257,13 @@ public class GameManager : MonoBehaviour
 
     void RunUI()
     {
+
         TM_SCORE.text = previousScore.ToString("D10");
         TM_COMBO.text = "x" + Combo.ToString();
         TM_COMBO_UNDERLAY.text = "x" + Combo.ToString();
         TM_DIFFICULTY.text = "DIFFICULTY: " + MapReader.GetDifficultyRating().ToString("F2", CultureInfo.InvariantCulture);
         TM_MAXSCORE.text = "MAX SCORE:     " + MapReader.GetMaxScore().ToString();
-
+        
         //This will be temporary
         #region DEBUG_STATS_UI
         TM_PERFECT.text = "PERFECT:   " +
@@ -484,7 +469,7 @@ public class GameManager : MonoBehaviour
 
     void CheckSignsOfInput()
     {
-        if (gameMode == GameMode.TECHMEISTER)
+        try
         {
             multiInputValue = MouseEvent.Instance.GetMouseInputValue() + KeyPress.Instance.GetKeyPressInputValue();
 
@@ -492,6 +477,7 @@ public class GameManager : MonoBehaviour
             if (multiInputValue > 0)
                 StartMultiInputDelay();
         }
+        catch { }
     }
 
     void StartMultiInputDelay()
@@ -503,7 +489,7 @@ public class GameManager : MonoBehaviour
 
     void CheckStressMaxed()
     {
-        if (IMG_STRESS.fillAmount >= 0.99f)
+        if (IMG_STRESS.fillAmount >= 0.99f && isNoFail == false)
             RestartSong();
     }
 
@@ -558,7 +544,6 @@ public class GameManager : MonoBehaviour
         //We store the function we want into our delegate
         scoutingDelegate = EventManager.AddNewEvent(000, "ON_BEGIN_SCOUT", () =>
         {
-            Debug.Log("Scouting...");
             RoftScouter.OnStart();
         }
         );
@@ -644,5 +629,15 @@ public class GameManager : MonoBehaviour
     {
         SongMode = (value == 0 || value == 1) ? value : (value / value) - 1;
     }
+
+    public static float GetAccuracyPercentile() => Instance.accuracyPercentile;
+    public static void UpdateAccuracyPercentile(float value, bool relative = false, bool comboBreak = false)
+    {
+        Instance.accuracyPercentile = relative ? Instance.accuracyPercentile + value : value;
+        Instance.overallAccuracy = Instance.accuracyPercentile / Instance.GetSumOfStats();
+        if(comboBreak == false) Instance.UpdateScore();
+    }
+
+    public static TextMeshProUGUI GetAutoplayText() => Instance.TM_AUTOPLAY;
     #endregion
 }

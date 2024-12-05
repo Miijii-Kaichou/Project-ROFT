@@ -1,5 +1,5 @@
 ﻿[System.Serializable]
-public class HoldObjectReader : ObjectTypes
+public class HoldObjectReader : ObjectReader
 {
 
     public HoldObjectReader()
